@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syndicate AI Intel Center | Gemini & Search Grounding</title>
+    <link href="/public/crypto-heist-unified.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/access-control.js"></script>
+    <style>
+        :root {
+            --color-primary: #00ff88;
+            --color-secondary: #00ffff;
+            --color-accent: #F7931A;
+            --color-blue: #38bdf8;
+            --bg-dark: #020610;
+            --bg-card: rgba(10, 20, 38, 0.85);
+            --border-glow: rgba(0, 255, 136, 0.3);
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #020610;
+            color: #f8fafc;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+        }
+
+        .hud-header {
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 7, 18, 0.95);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.25);
+            backdrop-filter: blur(12px);
+            z-index: 50;
+        }
+
+        .title-brand {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #00ff88, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .chat-main-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @media (max-width: 900px) {
+            .chat-main-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-panel {
+                display: none !important;
+            }
+        }
+
+        .sidebar-panel {
+            background: rgba(6, 12, 24, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .persona-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .persona-card:hover, .persona-card.active {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .persona-card.active {
+            border-left: 4px solid #00ff88;
+        }
+
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.05), transparent 70%), #020610;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .msg-bubble {
+            max-width: 82%;
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-bubble.user {
+            align-self: flex-end;
+            background: rgba(14, 165, 233, 0.18);
+            border: 1px solid rgba(14, 165, 233, 0.5);
+            border-right: 4px solid #38bdf8;
+            color: #f1f5f9;
+        }
+
+        .msg-bubble.ai {
+            align-self: flex-start;
+            background: rgba(10, 20, 38, 0.9);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-left: 4px solid #00ff88;
+            color: #f8fafc;
+        }
+
+        .msg-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            font-family: 'Orbitron', monospace;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .grounding-box {
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: rgba(2, 6, 23, 0.7);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .source-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(14, 165, 233, 0.15);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.78rem;
+            margin: 4px 4px 0 0;
+            transition: all 0.2s;
+        }
+
+        .source-pill:hover {
+            background: rgba(14, 165, 233, 0.3);
+            border-color: #38bdf8;
+            transform: translateY(-1px);
+        }
+
+        .search-query-badge {
+            background: rgba(247, 147, 26, 0.15);
+            border: 1px solid rgba(247, 147, 26, 0.4);
+            color: #F7931A;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: 'Orbitron', monospace;
+            display: inline-block;
+            margin: 2px 4px 2px 0;
+        }
+
+        .code-block {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #38bdf8;
+        }
+
+        .input-bar {
+            background: rgba(3, 7, 18, 0.95);
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 16px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .chip-btn:hover {
+            border-color: #00ff88;
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #00ff88;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .pulse-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top HUD Header -->
+    <header class="hud-header">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <a href="/" class="title-brand">
+                <span style="font-size: 1.5rem; color: #F7931A;">₿</span>
+                <span>SYNDICATE AI INTEL CENTER</span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; font-family: 'Orbitron', monospace;">
+                <span class="pulse-indicator"></span>
+                <span style="color: #00ff88;">GEMINI MULTI-TURN COMMS ONLINE</span>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <a href="/game" class="chip-btn" style="color: #00ff88; border-color: rgba(0,255,136,0.4);">
+                🎮 PLAY 2D HEIST GAME
+            </a>
+            <a href="/missions" class="chip-btn">
+                🎯 MISSIONS HQ
+            </a>
+            <a href="/workbench" class="chip-btn">
+                🧮 WORKBENCH
+            </a>
+            <button onclick="clearHistory()" class="chip-btn" style="color: #f87171; border-color: rgba(239,68,68,0.3);" title="Clear Conversation Log">
+                🗑️ CLEAR LOG
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Chat Workspace -->
+    <div class="chat-main-grid">
+        <!-- Sidebar Controls & Persona Configuration -->
+        <aside class="sidebar-panel">
+            <!-- Persona Selection -->
+            <div>
+                <div style="font-family: 'Orbitron', monospace; font-size: 0.85rem; font-weight: 800; color: #38bdf8; margin-bottom: 10px; letter-spacing: 1px;">
+                    OPERATIVE PERSONA
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="persona-card active" onclick="setRole('tactical_handler', this)">
+                        <div style="font-weight: 700; color: #00ff88; font-size: 0.9rem;">📡 Tactical Handler</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Infiltration tips, sentry cone evasion, laser barrier bypass.</div>
+                    </div>
+                    <div class="persona-card" onclick="setRole('cryptanalyst', this)">
+                        <div style="font-weight: 700; color: #38bdf8; font-size: 0.9rem;">🧮 Lead Cryptanalyst</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Pollard Kangaroo jumps, secp256k1 curves, 71-bit intervals.</div>
+                    </div>
+                    <div class="persona-card" onclick="setRole('live_intel', this)">
+                        <div style="font-weight: 700; color: #F7931A; font-size: 0.9rem;">🌐 Live BTC Scout</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Google Search grounded facts, tip block height, puzzle solves.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model & Grounding Controls -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px;">
+                <div style="font-family: 'Orbitron', monospace; font-size: 0.82rem; font-weight: 800; color: #00ffff; margin-bottom: 12px; letter-spacing: 1px;">
+                    GEMINI ENGINE CONFIG
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px;">Select Model:</label>
+                    <select id="model-select" style="width: 100%; background: #020617; border: 1px solid rgba(0,255,136,0.3); border-radius: 6px; padding: 8px 10px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; outline: none;">
+                        <option value="gemini-3.8-flash">gemini-3.8-flash (Search Grounding & Reasoning)</option>
+                        <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (Fast Tactical Comms)</option>
+                    </select>
+                </div>
+
+                <!-- Google Search Grounding Toggle -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #38bdf8;">Google Search Grounding</div>
+                        <div style="font-size: 0.72rem; color: #94a3b8;">Fetch live blockchain & puzzle intelligence</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="search-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Quick Telemetry & Stats -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px;">
+                <div style="font-family: 'Orbitron', monospace; font-size: 0.8rem; font-weight: 800; color: #F7931A; margin-bottom: 10px;">
+                    NETWORK TELEMETRY
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: #94a3b8;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Target Range:</span>
+                        <span style="color: #00ff88; font-weight: bold;">[2^70 ... 2^71-1]</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Key Count:</span>
+                        <span style="color: #38bdf8; font-weight: bold;">1.18 × 10^21</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Search Grounding:</span>
+                        <span id="grounding-status-label" style="color: #00ff88; font-weight: bold;">ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Squelch FX Toggle -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.8rem; color: #94a3b8;">Comms Sound FX:</span>
+                <button id="audio-toggle-btn" onclick="toggleAudio()" class="chip-btn" style="padding: 4px 10px; font-size: 0.75rem;">
+                    🔊 Audio ON
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Center -->
+        <main class="chat-area">
+            <!-- Scrollable Messages Container -->
+            <div class="chat-messages" id="chat-messages">
+                <div class="msg-bubble ai">
+                    <div class="msg-header">
+                        <span style="color: #00ff88;">📡 SYNDICATE HANDLER · RADIO LINK ACTIVE</span>
+                        <span style="color: #64748b;" id="initial-timestamp">JUST NOW</span>
+                    </div>
+                    <div>
+                        Welcome to the <strong>Syndicate AI Intel Center</strong>. I am your encrypted liaison for high-stakes cryptographic infiltration missions.
+                        <br><br>
+                        Powered by <strong>Gemini 3.8 Flash</strong> with <strong>Google Search Grounding</strong>, I can cross-reference real-time Bitcoin puzzle statuses, analyze Pollard Kangaroo jump parameters for 71-bit intervals, and coordinate laser-grid infiltration tactics.
+                        <br><br>
+                        Select a prompt below or transmit your operational inquiry directly.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions Bar -->
+            <div style="padding: 8px 24px 0 24px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;">
+                <button class="chip-btn" onclick="sendPrompt('Check the live solve status and transaction details for Bitcoin Puzzles 67 and 71.')">
+                    🔍 Live Puzzle 67/71 Status
+                </button>
+                <button class="chip-btn" onclick="sendPrompt('Provide the optimal Pollard Kangaroo algorithm jump distances and distinguished points for 71-bit range [0x40000000000000000, 0x7ffffffffffffffff].')">
+                    🦘 Pollard Kangaroo Formula
+                </button>
+                <button class="chip-btn" onclick="sendPrompt('What is the current Bitcoin network tip block height, average mempool fee rate, and hash rate?')">
+                    ⚡ Current Block Height & Fees
+                </button>
+                <button class="chip-btn" onclick="sendPrompt('Tactical advice: How do I time the pulsing laser barriers and slip past sentry vision cones in the 2D heist game?')">
+                    🛡️ Stealth Laser & Sentry Tactics
+                </button>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="input-bar">
+                <div style="display: flex; gap: 12px; align-items: flex-end;">
+                    <div style="flex: 1; position: relative;">
+                        <textarea id="chat-input" rows="2" placeholder="Transmit query to Syndicate AI (Enter to send, Shift+Enter for new line)..." style="width: 100%; background: #060e1d; border: 1px solid rgba(0,255,136,0.3); border-radius: 8px; padding: 12px 16px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 1rem; resize: none; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#00ff88'" onblur="this.style.borderColor='rgba(0,255,136,0.3)'"></textarea>
+                    </div>
+                    <button id="send-btn" onclick="sendMessage()" style="background: linear-gradient(135deg, #00ff88, #00bd67); color: #020610; font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1rem; padding: 14px 28px; border-radius: 8px; border: none; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,136,0.4); display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                        <span>TRANSMIT</span>
+                        <span>➤</span>
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; font-family: 'Orbitron', monospace;">
+                    <span>STATUS: ENCRYPTED MULTI-TURN THREAD · GEMINI 3.8 FLASH</span>
+                    <span>ENTER TO SEND · ESC TO BLUR</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Client-Side Chat Engine Script -->
+    <script>
+        // State
+        let conversationHistory = [];
+        let currentRole = 'tactical_handler';
+        let isSending = false;
+        let audioEnabled = true;
+
+        // Audio synthesizer using Web Audio API
+        const audioCtx = window.AudioContext ? new (window.AudioContext || window.webkitAudioContext)() : null;
+
+        function playSound(type) {
+            if (!audioEnabled || !audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'send') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'receive') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(740, now);
+                    osc.frequency.setValueAtTime(920, now + 0.08);
+                    gain.gain.setValueAtTime(0.09, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'search') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.linearRampToValueAtTime(660, now + 0.08);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch (e) {
+                // Audio safely skipped if blocked
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audio-toggle-btn');
+            if (btn) btn.textContent = audioEnabled ? '🔊 Audio ON' : '🔇 Audio MUTED';
+        }
+
+        function setRole(roleId, cardEl) {
+            currentRole = roleId;
+            document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'));
+            if (cardEl) cardEl.classList.add('active');
+
+            // Auto-check search grounding if live_intel selected
+            const searchToggle = document.getElementById('search-toggle');
+            if (roleId === 'live_intel' && searchToggle) {
+                searchToggle.checked = true;
+            }
+            playSound('search');
+        }
+
+        function sendPrompt(text) {
+            const input = document.getElementById('chat-input');
+            if (input) {
+                input.value = text;
+                sendMessage();
+            }
+        }
+
+        // Markdown / code formatter
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let formatted = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Code blocks
+            formatted = formatted.replace(/```([\s\S]*?)```/g, function(match, code) {
+                return `<div class="code-block">${code.trim()}</div>`;
+            });
+
+            // Inline code
+            formatted = formatted.replace(/`([^`]+)`/g, '<code style="background: rgba(0,255,255,0.15); color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">$1</code>');
+
+            // Bold
+            formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong style="color: #00ff88;">$1</strong>');
+
+            // Bullet points
+            formatted = formatted.replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin-left: 20px; list-style-type: square; color: #cbd5e1;">$1</li>');
+
+            // Line breaks
+            formatted = formatted.replace(/\n/g, '<br>');
+
+            return formatted;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message || isSending) return;
+
+            input.value = '';
+            isSending = true;
+
+            const sendBtn = document.getElementById('send-btn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.style.opacity = '0.6';
+                sendBtn.innerHTML = '<span>ANALYZING...</span>';
+            }
+
+            // Append user message to UI
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            appendMessage('user', 'OPERATIVE TRANSCRIPTION', message, timeStr);
+            playSound('send');
+
+            // Store in client conversation history
+            conversationHistory.push({ role: 'user', text: message });
+
+            // Read model and search settings
+            const modelSelect = document.getElementById('model-select');
+            const searchToggle = document.getElementById('search-toggle');
+            const selectedModel = modelSelect ? modelSelect.value : 'gemini-3.8-flash';
+            const useSearch = searchToggle ? searchToggle.checked : true;
+
+            try {
+                const response = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        history: conversationHistory,
+                        role: currentRole,
+                        model: selectedModel,
+                        useSearch
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.message) {
+                    conversationHistory.push({ role: 'model', text: data.message });
+                    const aiTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    appendMessage('ai', data.roleName || 'SYNDICATE INTEL', data.message, aiTime, data.grounding, data.model);
+                    playSound('receive');
+                } else {
+                    appendMessage('ai', 'SYNDICATE INTEL [WARN]', data.error || 'Signal degraded. Tactical cipher engine standing by.', timeStr);
+                }
+            } catch (err) {
+                appendMessage('ai', 'SYNDICATE INTEL [LOCAL DECRYPT]', 'Radio interference detected. Pollard Kangaroo parameters loaded locally in cache.', timeStr);
+            } finally {
+                isSending = false;
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.innerHTML = '<span>TRANSMIT</span><span>➤</span>';
+                }
+                input.focus();
+            }
+        }
+
+        function appendMessage(role, headerTitle, text, timestamp, grounding, modelUsed) {
+            const container = document.getElementById('chat-messages');
+            if (!container) return;
+
+            const bubble = document.createElement('div');
+            bubble.className = `msg-bubble ${role}`;
+
+            const isAi = role === 'ai';
+            const headerColor = isAi ? '#00ff88' : '#38bdf8';
+
+            let modelTag = '';
+            if (modelUsed) {
+                modelTag = `<span style="font-size: 0.72rem; background: rgba(0,255,255,0.1); color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${modelUsed}</span>`;
+            }
+
+            let groundingHtml = '';
+            if (grounding && (grounding.searchUsed || (grounding.sources && grounding.sources.length > 0))) {
+                let queriesHtml = '';
+                if (grounding.searchQueries && grounding.searchQueries.length > 0) {
+                    queriesHtml = `
+                        <div style="margin-bottom: 8px;">
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: bold;">WEB QUERIES:</span>
+                            ${grounding.searchQueries.map(q => `<span class="search-query-badge">🔍 ${q}</span>`).join('')}
+                        </div>
+                    `;
+                }
+
+                let sourcesHtml = '';
+                if (grounding.sources && grounding.sources.length > 0) {
+                    sourcesHtml = `
+                        <div>
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: bold;">GROUNDING CITATIONS:</span>
+                            <div style="display: flex; flex-wrap: wrap; margin-top: 4px;">
+                                ${grounding.sources.map(s => `
+                                    <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-pill" title="${s.title}">
+                                        <span>🔗</span>
+                                        <span style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.title}</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                groundingHtml = `
+                    <div class="grounding-box">
+                        <div style="display: flex; align-items: center; gap: 6px; color: #38bdf8; font-family: 'Orbitron', monospace; font-size: 0.78rem; font-weight: bold; margin-bottom: 6px;">
+                            <span>🌐 GOOGLE SEARCH GROUNDING VERIFIED</span>
+                        </div>
+                        ${queriesHtml}
+                        ${sourcesHtml}
+                    </div>
+                `;
+            }
+
+            bubble.innerHTML = `
+                <div class="msg-header">
+                    <span style="color: ${headerColor}; display: flex; align-items: center;">
+                        ${headerTitle}
+                        ${modelTag}
+                    </span>
+                    <span style="color: #64748b;">${timestamp}</span>
+                </div>
+                <div>${formatMarkdown(text)}</div>
+                ${groundingHtml}
+            `;
+
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearHistory() {
+            conversationHistory = [];
+            const container = document.getElementById('chat-messages');
+            if (container) {
+                container.innerHTML = `
+                    <div class="msg-bubble ai">
+                        <div class="msg-header">
+                            <span style="color: #00ff88;">📡 SYNDICATE HANDLER · RADIO LINK ACTIVE</span>
+                            <span style="color: #64748b;">NOW</span>
+                        </div>
+                        <div>Log purged. Encrypted channel refreshed. Ready for operative orders.</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Keyboard bindings
+        document.getElementById('chat-input')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize timestamp
+        document.getElementById('initial-timestamp').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Add (or append) these entries to the project .gitignore
+# Local environment files
+.env
+.env.local
+.env.*.local
+.DS_Store
+
+# OS / Editor files
+.vscode/
+.idea/
+*.swp
+
+# Secret exports / key dumps
+secrets.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Build artifacts
+dist/
+build/
+node_modules/
+
+# Simcir or exports that may contain program data
+*.circuit.json

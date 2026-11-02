@@ -1,0 +1,11 @@
+{
+  "name": "AI Bitcoin Puzzle Assistant",
+  "description": "An AI-powered chatbot to help you explore and understand a complex Bitcoin puzzle database using the Gemini API.",
+  "requestFramePermissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

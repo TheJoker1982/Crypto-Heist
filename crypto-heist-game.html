@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Heist: 2D Tactical Infiltration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/public/crypto-heist-unified.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #020610;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        #title-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #0a1828 0%, #020610 85%);
+            z-index: 10;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .title-glow {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00ff88, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0,255,136,0.5);
+            margin-bottom: 8px;
+        }
+
+        .mission-selector-card {
+            background: rgba(10, 20, 38, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 16px 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .mission-selector-card:hover, .mission-selector-card.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+            transform: translateY(-2px);
+            background: rgba(14, 28, 54, 0.95);
+        }
+
+        @keyframes pulsePrompt {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(0,255,136,0.6); }
+            100% { transform: scale(1.05); box-shadow: 0 0 35px rgba(0,255,136,0.9); }
+        }
+
+        @keyframes pulseDot {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="title-screen">
+        <div style="font-size: 0.9rem; color: #38bdf8; font-family: 'Orbitron', monospace; letter-spacing: 3px; margin-bottom: 8px;">[CLASSIFIED SYNDICATE OPERATION]</div>
+        <h1 class="title-glow">CRYPTO HEIST</h1>
+        <p style="font-size: 1.3rem; color: #94a3b8; max-width: 640px; margin-bottom: 32px;">
+            60FPS 2D Walkaround Tactical Infiltration Game. Infiltrate secure facilities, evade sentry vision cones, bypass laser barriers, hack cipher terminals, and crack cold-storage vaults with the Gemini AI handler.
+        </p>
+
+        <!-- Mission Selection Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; max-width: 900px; width: 100%; margin-bottom: 36px;">
+            <div class="mission-selector-card active" onclick="selectMission('fix_pc', this)">
+                <div style="font-size: 0.8rem; color: #00ff88; font-weight: bold; font-family: 'Orbitron', monospace;">STAGE 01 · GEEK SQUAD</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 4px 0;">Customer PC Recovery</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">Bypass 2 sentries, isolate svch0st miner, restore registry hive.</div>
+                <div style="margin-top: 8px; font-size: 0.8rem; color: #F7931A; font-weight: bold;">Reward: 0.05 BTC · 250 XP</div>
+            </div>
+
+            <div class="mission-selector-card" onclick="selectMission('puzzle_66', this)">
+                <div style="font-size: 0.8rem; color: #38bdf8; font-weight: bold; font-family: 'Orbitron', monospace;">STAGE 02 · POLLARD RANGE</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 4px 0;">The Kangaroo Vault (66)</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">Navigate 4 laser grids, calibrate 2^65 ECDLP jumps, crack Vault 66.</div>
+                <div style="margin-top: 8px; font-size: 0.8rem; color: #F7931A; font-weight: bold;">Reward: 6.6 BTC · 1,200 XP</div>
+            </div>
+
+            <div class="mission-selector-card" onclick="selectMission('billion_heist', this)">
+                <div style="font-size: 0.8rem; color: #ff00ff; font-weight: bold; font-family: 'Orbitron', monospace;">STAGE 03 · CITADEL 71</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 4px 0;">The Billion Satoshi Heist (71)</div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">4 elite sentries, Hash160 inverse decoder, Level 5 Cold Sanctum.</div>
+                <div style="margin-top: 8px; font-size: 0.8rem; color: #F7931A; font-weight: bold;">Reward: 71.0 BTC · 5,000 XP</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 16px;">
+            <button onclick="launchSelectedMission()" style="background: linear-gradient(135deg, #00ff88, #00c8ff); color: #020610; font-family: 'Orbitron', monospace; font-size: 1.25rem; font-weight: 900; padding: 16px 48px; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 0 35px rgba(0,255,136,0.6); transition: all 0.2s;">
+                ⚡ INFILTRATE FACILITY [ENTER]
+            </button>
+            <button onclick="window.location.href='/missions'" style="background: rgba(255,255,255,0.08); border: 1px solid #475569; color: #cbd5e1; font-family: 'Orbitron', monospace; font-size: 1.1rem; padding: 16px 28px; border-radius: 10px; cursor: pointer;">
+                ← MISSIONS HQ
+            </button>
+        </div>
+
+        <div style="margin-top: 30px; font-size: 0.85rem; color: #64748b; font-family: 'Orbitron', monospace;">
+            CONTROLS: WASD / Arrows to Move · E / Space to Hack/Interact · C to Radio AI Handler · Esc to Pause
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/effects-controller.js"></script>
+    <script src="/crypto-heist-game.js"></script>
+
+    <script>
+        let selectedMissionKey = 'fix_pc';
+
+        function selectMission(key, cardEl) {
+            selectedMissionKey = key;
+            document.querySelectorAll('.mission-selector-card').forEach(c => c.classList.remove('active'));
+            if (cardEl) cardEl.classList.add('active');
+        }
+
+        function launchSelectedMission() {
+            const titleScreen = document.getElementById('title-screen');
+            if (titleScreen) titleScreen.style.display = 'none';
+            if (window.cryptoHeistGame) {
+                window.cryptoHeistGame.start(selectedMissionKey);
+            }
+        }
+
+        // Auto-launch if URL parameter specified
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const playParam = urlParams.get('play') || urlParams.get('mission');
+            if (playParam) {
+                selectedMissionKey = playParam;
+                launchSelectedMission();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.getElementById('title-screen').style.display !== 'none') {
+                launchSelectedMission();
+            }
+        });
+    </script>
+</body>
+</html>

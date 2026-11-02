@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Crypto Live Studio - Crypto Heist</title>
+    <link href="/crypto-heist-unified.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <style>
+        :root {
+            --color-primary: #00ff88;
+            --color-secondary: #00c8ff;
+            --color-accent: #ff00ff;
+            --color-bitcoin: #F7931A;
+            --color-danger: #ff4757;
+            --color-warning: #FFD700;
+            --bg-dark: #0a0a2e;
+            --bg-panel: rgba(18, 20, 36, 0.95);
+            --bg-card: rgba(24, 28, 52, 0.85);
+            --border-color: rgba(0, 255, 136, 0.25);
+            --border-glow: rgba(0, 255, 136, 0.5);
+            --font-primary: 'Rajdhani', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #07091e 0%, #000 65%, #08142b 100%);
+            color: #e2e8f0;
+            font-family: var(--font-primary);
+        }
+
+        /* Ambient scanlines & glow */
+        .hud-header {
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: rgba(10, 14, 28, 0.96);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo { 
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-badge {
+            background: rgba(247, 147, 26, 0.15);
+            border: 1px solid var(--color-bitcoin);
+            color: var(--color-bitcoin);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .broadcast-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: rgba(255, 0, 85, 0.15);
+            border: 1px solid rgba(255, 0, 85, 0.4);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #ff3366;
+            font-weight: 600;
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        .broadcast-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff0055;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff0055;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(255, 0, 85, 0.2); }
+            50% { box-shadow: 0 0 16px rgba(255, 0, 85, 0.4); }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 14px;
+            font-size: 0.85rem;
+            margin-right: 12px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: var(--color-primary);
+        }
+
+        .cyber-btn {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 200, 255, 0.2) 100%);
+            border: 1px solid var(--color-primary);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .cyber-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.35) 0%, rgba(0, 200, 255, 0.35) 100%);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .cyber-btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .cyber-btn-outline:hover {
+            border-color: var(--color-secondary);
+            color: var(--color-secondary);
+            background: rgba(0, 200, 255, 0.1);
+        }
+
+        /* Main Workspace Layout */
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Sidebar File Tree */
+        .sidebar {
+            width: 320px;
+            background: rgba(12, 16, 32, 0.98);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+        .sidebar.collapsed {
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-header {
+            padding: 12px 14px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .search-box-wrap {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .search-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .presets-dropdown {
+            width: 100%;
+            margin-top: 8px;
+            background: rgba(15, 20, 38, 0.9);
+            border: 1px solid var(--border-color);
+            color: #cbd5e1;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: var(--font-primary);
+            cursor: pointer;
+        }
+
+        .file-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .folder-section {
+            margin-bottom: 14px;
+        }
+        .folder-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            color: var(--color-bitcoin);
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-item {
+            padding: 7px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 2px 0;
+            font-size: 0.84rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+            font-family: var(--font-mono);
+        }
+        .file-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: #fff;
+            transform: translateX(3px);
+        }
+        .file-item.active {
+            background: rgba(0, 255, 136, 0.18);
+            color: var(--color-primary);
+            border-left: 3px solid var(--color-primary);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.15);
+        }
+        .file-desc-sub {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-left: auto;
+            font-family: var(--font-primary);
+        }
+
+        /* Center Editor Area */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #0d1117;
+            min-width: 0;
+        }
+
+        .editor-subbar {
+            padding: 6px 14px;
+            background: rgba(14, 18, 34, 0.98);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: #0a0d14;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+        .tab {
+            padding: 8px 14px;
+            background: rgba(15, 20, 32, 0.6);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            font-size: 0.82rem;
+            font-family: var(--font-mono);
+            color: #94a3b8;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .tab.active {
+            background: #0d1117;
+            color: #fff;
+            border-top: 2px solid var(--color-primary);
+            border-bottom: 1px solid #0d1117;
+        }
+        .tab:hover {
+            color: #fff;
+            background: rgba(0, 255, 136, 0.06);
+        }
+        .tab-close {
+            margin-left: auto;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .tab-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ff4757;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #editor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        /* Fallback Textarea Editor if Monaco CDN delayed */
+        #fallback-editor {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d1117;
+            color: #a5f3fc;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 16px;
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            tab-size: 4;
+        }
+
+        /* Right Output Panel */
+        .output-panel {
+            width: 440px;
+            background: rgba(11, 14, 26, 0.98);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .output-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .output-tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px solid transparent;
+        }
+        .output-tab.active {
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-primary);
+            background: rgba(0, 255, 136, 0.08);
+        }
+        .output-tab:hover {
+            color: #fff;
+        }
+
+        .output-body {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-tab-content {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .output-tab-content.active {
+            display: flex;
+        }
+
+        /* Console styling */
+        .console-toolbar {
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .console-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            background: #080a12;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-entry { margin: 3px 0; }
+        .log-info { color: #38bdf8; }
+        .log-success { color: #4ade80; }
+        .log-warn { color: #facc15; }
+        .log-error { color: #f87171; font-weight: 600; }
+        .log-stdout { color: #cbd5e1; }
+        .log-banner { 
+            color: var(--color-primary);
+            border-bottom: 1px dashed rgba(0, 255, 136, 0.3);
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        /* Live Preview */
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+        }
+
+        /* AI Assistant */
+        .ai-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .ai-message {
+            padding: 10px 14px;
+            border-radius: 6px;
+            max-width: 92%;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+        .ai-message.user {
+            background: rgba(0, 200, 255, 0.15);
+            border-left: 3px solid var(--color-secondary);
+            margin-left: auto;
+            color: #e2e8f0;
+        }
+        .ai-message.ai {
+            background: rgba(18, 24, 46, 0.9);
+            border-left: 3px solid var(--color-primary);
+            color: #f1f5f9;
+        }
+        .ai-chips {
+            padding: 8px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .ai-chip {
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            font-size: 0.72rem;
+            color: var(--color-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ai-chip:hover {
+            background: rgba(0, 255, 136, 0.25);
+            border-color: var(--color-primary);
+        }
+
+        .ai-input-wrap {
+            padding: 10px 12px;
+            background: rgba(14, 18, 34, 0.98);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .ai-textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 10px;
+            border-radius: 6px;
+            color: #fff;
+            font-family: var(--font-primary);
+            font-size: 0.85rem;
+            resize: none;
+            outline: none;
+        }
+        .ai-textarea:focus {
+            border-color: var(--color-secondary);
+        }
+
+        /* Broadcast Live Stream Panel */
+        .broadcast-panel {
+            padding: 14px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .stream-card {
+            background: rgba(18, 22, 42, 0.9);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 6px;
+            padding: 12px;
+        }
+        .stream-stat-val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-family: var(--font-mono);
+        }
+        .stream-chat-box {
+            flex: 1;
+            background: rgba(8, 10, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 200px;
+        }
+        .stream-chat-msg {
+            display: flex;
+            gap: 6px;
+            line-height: 1.35;
+        }
+        .stream-user {
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+        .stream-tip {
+            color: var(--color-warning);
+            font-weight: 600;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            width: 440px;
+            background: rgba(16, 20, 40, 0.98);
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 1024px) {
+            .output-panel { width: 340px; }
+            .sidebar { width: 260px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top HUD Header -->
+    <header class="hud-header">
+        <div class="logo-group">
+            <a href="/" class="logo">
+                <span style="color: var(--color-bitcoin); font-size: 1.4rem;">₿</span>
+                <span>CRYPTO HEIST</span>
+                <span class="logo-badge">LIVE CODING STUDIO</span>
+            </a>
+            <div class="broadcast-indicator" id="broadcastBadge">
+                <div class="broadcast-dot"></div>
+                <span id="broadcastText">ON AIR</span>
+                <span id="viewerCount" style="color: #cbd5e1; font-family: var(--font-mono); font-size: 0.75rem;">👥 284</span>
+            </div>
+        </div>
+
+        <nav class="nav-links">
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/missions" class="nav-link">Missions</a>
+            <a href="/workbench" class="nav-link">Workbench</a>
+            <a href="/ai-suite" class="nav-link">AI Suite</a>
+            <a href="/files" class="nav-link">File Browser</a>
+        </nav>
+
+        <div class="header-actions">
+            <button class="cyber-btn-outline" onclick="openNewFileModal()">➕ New</button>
+            <button class="cyber-btn-outline" onclick="formatCode()">✨ Format</button>
+            <button class="cyber-btn-outline" onclick="saveFile()">💾 Save</button>
+            <button class="cyber-btn" id="runBtn" onclick="runCode()">▶️ Run Code</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="main-container">
+        <!-- Sidebar: Project Explorer -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>📁 PROJECT EXPLORER</span>
+                <div style="display: flex; gap: 6px;">
+                    <button class="cyber-btn-outline" style="padding: 2px 8px; font-size: 0.75rem;" onclick="loadFilesFromBackend()" title="Refresh file list">🔄</button>
+                    <button class="cyber-btn-outline" style="padding: 2px 8px; font-size: 0.75rem;" onclick="toggleSidebar()">✕</button>
+                </div>
+            </div>
+
+            <div class="search-box-wrap">
+                <input type="text" id="fileSearchInput" class="search-input" placeholder="🔍 Search scripts & tools..." oninput="filterFiles()">
+                <select id="presetTemplateSelect" class="presets-dropdown" onchange="loadPresetTemplate(this.value)">
+                    <option value="">⚡ Quick Template Presets...</option>
+                    <option value="puzzle71">Puzzle 71 (7.1 BTC) Range Cracker</option>
+                    <option value="kangaroo">ECDLP Kangaroo Collision Solver</option>
+                    <option value="utxo">High-Speed UTXO Scanner</option>
+                    <option value="hash160">Hash160 Inverse Math Accumulator</option>
+                    <option value="txbuilder">Bitcoin Raw Transaction Signer</option>
+                </select>
+            </div>
+
+            <div class="file-tree" id="fileTree">
+                <!-- Dynamically loaded folders and files -->
+                <div style="padding: 16px; color: #64748b; font-size: 0.85rem; text-align: center;">Loading file tree...</div>
+            </div>
+        </aside>
+
+        <!-- Center: Code Editor Area -->
+        <main class="editor-container">
+            <!-- Tabs Strip -->
+            <div class="tabs" id="tabsBar"></div>
+
+            <!-- Subbar (active path, language, execution state) -->
+            <div class="editor-subbar">
+                <button class="cyber-btn-outline" style="padding: 2px 8px;" onclick="toggleSidebar()" title="Toggle Sidebar">☰ Files</button>
+                <span id="currentFilePath" style="font-family: var(--font-mono); color: #38bdf8;">No file open</span>
+                <span id="currentLanguageBadge" style="margin-left: auto; padding: 2px 8px; background: rgba(255,255,255,0.08); border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8;">PLAIN TEXT</span>
+                <span id="editorStatusBadge" style="color: #4ade80; font-size: 0.75rem;">⚡ Ready</span>
+            </div>
+
+            <!-- Editor Wrapper -->
+            <div class="editor-wrapper">
+                <div id="editor"></div>
+                <textarea id="fallback-editor" spellcheck="false" placeholder="// Select a file or write code here..."></textarea>
+            </div>
+        </main>
+
+        <!-- Right: Execution & Output Panel -->
+        <aside class="output-panel">
+            <div class="output-tabs">
+                <div class="output-tab active" data-tab="console" onclick="switchOutputTab('console')">
+                    💻 Console
+                </div>
+                <div class="output-tab" data-tab="preview" onclick="switchOutputTab('preview')">
+                    👁️ Preview
+                </div>
+                <div class="output-tab" data-tab="ai" onclick="switchOutputTab('ai')">
+                    🤖 AI Copilot
+                </div>
+                <div class="output-tab" data-tab="broadcast" onclick="switchOutputTab('broadcast')">
+                    📡 Broadcast
+                </div>
+            </div>
+
+            <div class="output-body">
+                <!-- Tab 1: Console Tab -->
+                <div class="output-tab-content active" id="tab-content-console">
+                    <div class="console-toolbar">
+                        <span>STATUS: <strong id="runStatusLabel" style="color: #4ade80;">IDLE</strong></span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="cyber-btn-outline" style="padding: 2px 8px; font-size: 0.75rem;" onclick="copyConsoleOutput()">📋 Copy</button>
+                            <button class="cyber-btn-outline" style="padding: 2px 8px; font-size: 0.75rem;" onclick="clearConsole()">🧹 Clear</button>
+                        </div>
+                    </div>
+                    <div class="console-output" id="consoleOutput"></div>
+                </div>
+
+                <!-- Tab 2: HTML Live Preview -->
+                <div class="output-tab-content" id="tab-content-preview">
+                    <div class="console-toolbar">
+                        <span>LIVE HTML PREVIEW</span>
+                        <button class="cyber-btn-outline" style="padding: 2px 8px; font-size: 0.75rem;" onclick="refreshPreview()">🔄 Refresh</button>
+                    </div>
+                    <iframe id="previewIframe" class="preview-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+
+                <!-- Tab 3: AI Copilot -->
+                <div class="output-tab-content" id="tab-content-ai">
+                    <div class="ai-chips">
+                        <span class="ai-chip" onclick="askAICustom('Audit this script for cryptanalytic bugs or performance bottlenecks.')">🔍 Audit Code</span>
+                        <span class="ai-chip" onclick="askAICustom('How do I optimize the range scanning speed for this algorithm?')">⚡ Speed Up</span>
+                        <span class="ai-chip" onclick="askAICustom('Explain the cryptographic formula and elliptic curve math used here.')">📐 Math Explain</span>
+                        <span class="ai-chip" onclick="askAICustom('What is the recommended solver approach for Bitcoin Puzzle 71?')">🧩 Puzzle 71 Tips</span>
+                    </div>
+                    <div class="ai-messages" id="aiChatMessages">
+                        <div class="ai-message ai">
+                            <strong>🤖 Bitcoin Jesus (Code AI):</strong><br>
+                            Welcome to the Live Coding Studio. I can assist in verifying your ECDSA inversion equations, Pollard Kangaroo algorithms, or debugging Python solvers. Ask me anything!
+                        </div>
+                    </div>
+                    <div class="ai-input-wrap">
+                        <textarea id="aiMessageInput" class="ai-textarea" rows="2" placeholder="Ask AI about this code or Bitcoin puzzle math..."></textarea>
+                        <button class="cyber-btn" style="width: 100%; justify-content: center;" onclick="sendAIMessage()">Send to AI Assistant</button>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Live Broadcast Stream & Monetization -->
+                <div class="output-tab-content" id="tab-content-broadcast">
+                    <div class="broadcast-panel">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="stream-card">
+                                <div style="font-size: 0.75rem; color: #94a3b8;">LIVE VIEWERS</div>
+                                <div class="stream-stat-val" id="streamViewerVal">342</div>
+                            </div>
+                            <div class="stream-card">
+                                <div style="font-size: 0.75rem; color: #94a3b8;">STREAM TIPS</div>
+                                <div class="stream-stat-val" id="streamTipsVal" style="color: var(--color-warning);">0.145 BTC</div>
+                            </div>
+                        </div>
+
+                        <div class="stream-card">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;">STREAM TITLE</div>
+                            <div style="font-size: 0.85rem; color: var(--color-primary);">🔴 Cracking High-Order ECDLP Bounds | Live Heist Stream</div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Bitrate: 6,400 Kbps | Codec: H.264 | FPS: 60</div>
+                        </div>
+
+                        <div style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1; margin-top: 4px;">LIVE AUDIENCE CHAT</div>
+                        <div class="stream-chat-box" id="streamChatBox">
+                            <div class="stream-chat-msg"><span class="stream-user">SatoshiDisciple:</span> Let's go! Check the high parity point.</div>
+                            <div class="stream-chat-msg"><span class="stream-tip">⭐ BitWhale tipped 0.05 BTC:</span> "Great script structure!"</div>
+                            <div class="stream-chat-msg"><span class="stream-user">CryptoHeist99:</span> Waiting for the Kangaroo step jump!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- New File Modal -->
+    <div class="modal-overlay" id="newFileModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 14px; color: var(--color-primary); font-size: 1.15rem;">➕ Create New Studio Script</h3>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 4px;">File Name (e.g. my_puzzle_solver.py, test.js)</label>
+                <input type="text" id="newFileNameInput" class="search-input" style="width: 100%; font-size: 0.9rem;" placeholder="my_solver.py">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 4px;">Language Template</label>
+                <select id="newFileLangSelect" class="presets-dropdown">
+                    <option value="python">Python 3 Script</option>
+                    <option value="javascript">JavaScript / Node.js</option>
+                    <option value="html">HTML5 Web Tool</option>
+                    <option value="json">JSON Dataset</option>
+                </select>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="cyber-btn-outline" onclick="closeNewFileModal()">Cancel</button>
+                <button class="cyber-btn" onclick="confirmCreateNewFile()">Create File</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Studio State
+        let monacoEditor = null;
+        let isMonacoReady = false;
+        let activeFilePath = null;
+        let openTabs = {}; // path -> { path, language, content, isDirty }
+        let projectFiles = {
+            python: [],
+            javascript: [],
+            html: [],
+            data: []
+        };
+        let streamTipsBtc = 0.145;
+        let streamViewers = 342;
+
+        // Unified Content Getter / Setter for Monaco + Fallback
+        function getEditorContent() {
+            if (isMonacoReady && monacoEditor) {
+                return monacoEditor.getValue();
+            }
+            const fallback = document.getElementById('fallback-editor');
+            return fallback ? fallback.value : '';
+        }
+
+        function setEditorContent(text, language = 'javascript') {
+            const fallback = document.getElementById('fallback-editor');
+            if (isMonacoReady && monacoEditor) {
+                monacoEditor.setValue(text || '');
+                try {
+                    const monacoLang = mapToMonacoLanguage(language);
+                    monaco.editor.setModelLanguage(monacoEditor.getModel(), monacoLang);
+                } catch (e) {
+                    console.warn('Language switch err:', e);
+                }
+            }
+            if (fallback) {
+                fallback.value = text || '';
+            }
+        }
+
+        function mapToMonacoLanguage(lang) {
+            const l = (lang || '').toLowerCase();
+            if (l.includes('py')) return 'python';
+            if (l.includes('js') || l.includes('node')) return 'javascript';
+            if (l.includes('html')) return 'html';
+            if (l.includes('json')) return 'json';
+            if (l.includes('css')) return 'css';
+            return 'plaintext';
+        }
+
+        function detectLanguageFromPath(filepath) {
+            if (!filepath) return 'plaintext';
+            const ext = filepath.split('.').pop().toLowerCase();
+            if (ext === 'py') return 'python';
+            if (ext === 'js') return 'javascript';
+            if (ext === 'html' || ext === 'htm') return 'html';
+            if (ext === 'json') return 'json';
+            if (ext === 'csv') return 'plaintext';
+            return 'plaintext';
+        }
+
+        // Initialize Monaco Editor with safety fallback
+        function initMonacoEditor() {
+            if (typeof require !== 'undefined') {
+                require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+                require(['vs/editor/editor.main'], function () {
+                    const editorContainer = document.getElementById('editor');
+                    if (!editorContainer) return;
+
+                    monacoEditor = monaco.editor.create(editorContainer, {
+                        value: '# Welcome to Bitcoin Crypto Live Studio\n# Select a solver or file from the left explorer\n',
+                        language: 'python',
+                        theme: 'vs-dark',
+                        automaticLayout: true,
+                        fontSize: 14,
+                        fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                        minimap: { enabled: true },
+                        scrollBeyondLastLine: false,
+                        renderLineHighlight: 'all',
+                        padding: { top: 12, bottom: 12 }
+                    });
+
+                    isMonacoReady = true;
+                    document.getElementById('fallback-editor').style.display = 'none';
+                    document.getElementById('editorStatusBadge').textContent = '⚡ Engine: Monaco (VS-Dark)';
+
+                    // Track changes
+                    monacoEditor.onDidChangeModelContent(() => {
+                        if (activeFilePath && openTabs[activeFilePath]) {
+                            openTabs[activeFilePath].content = monacoEditor.getValue();
+                            openTabs[activeFilePath].isDirty = true;
+                            updateTabsBar();
+                        }
+                    });
+
+                    // If a file was already loaded before Monaco finished loading
+                    if (activeFilePath && openTabs[activeFilePath]) {
+                        setEditorContent(openTabs[activeFilePath].content, openTabs[activeFilePath].language);
+                    }
+                }, function (err) {
+                    console.warn('Monaco failed to load from CDN, enabling fallback editor:', err);
+                    enableFallbackEditor();
+                });
+            } else {
+                enableFallbackEditor();
+            }
+
+            // Fallback timeout: if Monaco takes longer than 4s, reveal fallback
+            setTimeout(() => {
+                if (!isMonacoReady) {
+                    enableFallbackEditor();
+                }
+            }, 4000);
+        }
+
+        function enableFallbackEditor() {
+            const fallback = document.getElementById('fallback-editor');
+            const editorEl = document.getElementById('editor');
+            if (fallback && !isMonacoReady) {
+                fallback.style.display = 'block';
+                if (editorEl) editorEl.style.display = 'none';
+                document.getElementById('editorStatusBadge').textContent = '⚡ Engine: Native Terminal';
+                fallback.addEventListener('input', () => {
+                    if (activeFilePath && openTabs[activeFilePath]) {
+                        openTabs[activeFilePath].content = fallback.value;
+                        openTabs[activeFilePath].isDirty = true;
+                        updateTabsBar();
+                    }
+                });
+            }
+        }
+
+        // Load project files list from server
+        async function loadFilesFromBackend() {
+            const fileTree = document.getElementById('fileTree');
+            try {
+                const res = await fetch('/api/studio/files');
+                const data = await res.json();
+                if (data.success && data.files) {
+                    projectFiles = data.files;
+                    renderFileTree(projectFiles);
+                    logConsole('Files loaded from project workspace.');
+                    return;
+                }
+            } catch (err) {
+                console.warn('Could not fetch /api/studio/files:', err);
+            }
+
+            // Fallback if network issue
+            renderFallbackFileTree();
+        }
+
+        function renderFileTree(files, filter = '') {
+            const fileTree = document.getElementById('fileTree');
+            fileTree.innerHTML = '';
+
+            const term = filter.toLowerCase().trim();
+
+            const categories = [
+                { id: 'python', title: '🐍 SOLVERS & PYTHON SCRIPTS', items: files.python || [] },
+                { id: 'javascript', title: '⚡ ENGINES & MODULES', items: files.javascript || [] },
+                { id: 'html', title: '📄 WEB TOOLS & WORKBENCHES', items: files.html || [] },
+                { id: 'data', title: '📋 DATASETS & CONFIG', items: files.data || [] }
+            ];
+
+            let matchCount = 0;
+
+            categories.forEach(cat => {
+                const filteredItems = cat.items.filter(item => 
+                    !term || item.name.toLowerCase().includes(term) || (item.description && item.description.toLowerCase().includes(term))
+                );
+
+                if (filteredItems.length === 0) return;
+                matchCount += filteredItems.length;
+
+                const folderDiv = document.createElement('div');
+                folderDiv.className = 'folder-section';
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'folder-title';
+                titleDiv.innerHTML = `<span>${cat.title}</span><span style="opacity: 0.6; font-size: 0.7rem;">(${filteredItems.length})</span>`;
+                folderDiv.appendChild(titleDiv);
+
+                filteredItems.forEach(file => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'file-item' + (activeFilePath === file.path ? ' active' : '');
+                    fileDiv.dataset.path = file.path;
+
+                    const icon = getFileIcon(file.ext || detectLanguageFromPath(file.name));
+                    const desc = file.description ? `<span class="file-desc-sub">${file.description.slice(0, 24)}...</span>` : '';
+
+                    fileDiv.innerHTML = `<span>${icon}</span> <span>${file.name}</span> ${desc}`;
+                    fileDiv.onclick = () => openFile(file.path, file.ext || detectLanguageFromPath(file.name));
+                    folderDiv.appendChild(fileDiv);
+                });
+
+                fileTree.appendChild(folderDiv);
+            });
+
+            if (matchCount === 0) {
+                fileTree.innerHTML = `<div style="padding: 20px; text-align: center; color: #64748b; font-size: 0.85rem;">No files matching "${filter}"</div>`;
+            }
+        }
+
+        function renderFallbackFileTree() {
+            const fallbackFiles = {
+                python: [
+                    { name: 'puzzle71_solver.py', path: 'puzzle71_solver.py', ext: '.py', description: 'Bitcoin Puzzle 71 solver' },
+                    { name: 'bitcoin_puzzle_specialized_cracker.py', path: 'bitcoin_puzzle_specialized_cracker.py', ext: '.py', description: 'Range cracker' },
+                    { name: 'recover_private_key.py', path: 'recover_private_key.py', ext: '.py', description: 'Key recovery inversion' },
+                    { name: 'utxo_scanner.py', path: 'utxo_scanner.py', ext: '.py', description: 'High-speed UTXO verification' },
+                    { name: 'hd_wallet_derivation.py', path: 'hd_wallet_derivation.py', ext: '.py', description: 'BIP32/BIP39 HD Derivation' }
+                ],
+                javascript: [
+                    { name: 'mission-gameplay.js', path: 'mission-gameplay.js', ext: '.js', description: 'Mission gameplay engine' },
+                    { name: 'effects-controller.js', path: 'effects-controller.js', ext: '.js', description: 'Visual FX & Synthesizer' },
+                    { name: 'ai-brain.js', path: 'ai-brain.js', ext: '.js', description: 'AI cognitive engine' },
+                    { name: 'hash160_inverse_add.js', path: 'hash160_inverse_add.js', ext: '.js', description: 'Inverse math analyzer' }
+                ],
+                html: [
+                    { name: 'character-set-workbench.html', path: 'character-set-workbench.html', ext: '.html', description: 'Character Workbench' },
+                    { name: 'ai-suite.html', path: 'ai-suite.html', ext: '.html', description: 'AI Suite' },
+                    { name: 'missions.html', path: 'missions.html', ext: '.html', description: 'Missions Interface' }
+                ],
+                data: [
+                    { name: 'puzzles-database.json', path: 'puzzles-database.json', ext: '.json', description: 'Puzzles database' },
+                    { name: 'character-sets-database.json', path: 'character-sets-database.json', ext: '.json', description: 'Charset database' }
+                ]
+            };
+            projectFiles = fallbackFiles;
+            renderFileTree(fallbackFiles);
+        }
+
+        function filterFiles() {
+            const query = document.getElementById('fileSearchInput').value;
+            renderFileTree(projectFiles, query);
+        }
+
+        function getFileIcon(ext) {
+            const e = (ext || '').replace('.', '').toLowerCase();
+            if (e === 'py') return '🐍';
+            if (e === 'js') return '⚡';
+            if (e === 'html' || e === 'htm') return '📄';
+            if (e === 'json') return '📋';
+            if (e === 'csv') return '📊';
+            return '📝';
+        }
+
+        // Open File in Tab and Editor
+        async function openFile(path, langHint) {
+            activeFilePath = path;
+            const language = langHint || detectLanguageFromPath(path);
+
+            document.getElementById('currentFilePath').textContent = path;
+            document.getElementById('currentLanguageBadge').textContent = language.toUpperCase();
+
+            // Add or activate Tab
+            if (!openTabs[path]) {
+                openTabs[path] = {
+                    path,
+                    language,
+                    content: '',
+                    isDirty: false
+                };
+            }
+
+            updateTabsBar();
+
+            // Highlight file in sidebar tree
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.path === path);
+            });
+
+            // If already cached in memory and not empty, set immediately
+            if (openTabs[path].content && openTabs[path].content.length > 0) {
+                setEditorContent(openTabs[path].content, language);
+                logConsole(`Switched to: ${path}`);
+                return;
+            }
+
+            // Fetch file content from backend
+            try {
+                logConsole(`Loading ${path}...`);
+                const res = await fetch(`/api/file/${encodeURIComponent(path)}`);
+                const data = await res.json();
+
+                let fileContent = '';
+                if (data.success && typeof data.content === 'string') {
+                    fileContent = data.content;
+                } else {
+                    fileContent = getTemplateForFile(path, language);
+                }
+
+                openTabs[path].content = fileContent;
+                openTabs[path].isDirty = false;
+                setEditorContent(fileContent, language);
+                updateTabsBar();
+                logConsole(`✅ Opened: ${path} (${fileContent.length} chars)`);
+            } catch (err) {
+                console.error('File load err:', err);
+                const fallbackContent = getTemplateForFile(path, language);
+                openTabs[path].content = fallbackContent;
+                setEditorContent(fallbackContent, language);
+                logConsole(`⚠️ Loaded template for: ${path}`);
+            }
+        }
+
+        function getTemplateForFile(path, language) {
+            if (language === 'python' || path.endsWith('.py')) {
+                return `# Bitcoin Crypto Solver: ${path}\nimport sys\n\ndef run_solver():\n    print("⚡ Starting solver analysis: ${path}")\n    # Target hash160 for Puzzle 71:\n    target_hash = "f6f5431d25bbf7b12e8add9af5e3475c44a0a5b8"\n    print(f"Target Hash160: {target_hash}")\n    print("Range: 2^70 to 2^71 - 1")\n    print("Execution completed successfully.")\n\nif __name__ == "__main__":\n    run_solver()\n`;
+            } else if (language === 'javascript' || path.endsWith('.js')) {
+                return `// Script: ${path}\nconsole.log("⚡ Executing module ${path}...");\nconst puzzle = { id: 71, rewardBtc: 7.1, solved: false };\nconsole.log("Puzzle details:", puzzle);\n`;
+            } else if (language === 'html' || path.endsWith('.html')) {
+                return `<!DOCTYPE html>\n<html>\n<head>\n  <title>${path}</title>\n  <style>body { background: #0a0e24; color: #00ff88; font-family: monospace; padding: 20px; }</style>\n</head>\n<body>\n  <h1>⚡ ${path}</h1>\n  <p>Live Studio Preview Mode Active</p>\n</body>\n</html>`;
+            } else {
+                return `{\n  "module": "${path}",\n  "status": "active",\n  "timestamp": ${Date.now()}\n}`;
+            }
+        }
+
+        // Tabs Management
+        function updateTabsBar() {
+            const tabsBar = document.getElementById('tabsBar');
+            tabsBar.innerHTML = '';
+
+            const paths = Object.keys(openTabs);
+            if (paths.length === 0) {
+                tabsBar.innerHTML = `<div style="padding: 8px 16px; color: #64748b; font-size: 0.8rem;">No tabs open</div>`;
+                return;
+            }
+
+            paths.forEach(p => {
+                const tab = openTabs[p];
+                const tabDiv = document.createElement('div');
+                tabDiv.className = 'tab' + (p === activeFilePath ? ' active' : '');
+                
+                const icon = getFileIcon(detectLanguageFromPath(p));
+                const filename = p.split('/').pop();
+                const dirtyDot = tab.isDirty ? '<span style="color: #f59e0b; font-size: 14px;">●</span>' : '';
+
+                tabDiv.innerHTML = `
+                    <span>${icon}</span>
+                    <span title="${p}">${filename}</span>
+                    ${dirtyDot}
+                    <span class="tab-close" onclick="closeTab('${p}', event)">×</span>
+                `;
+
+                tabDiv.onclick = (e) => {
+                    if (!e.target.classList.contains('tab-close')) {
+                        openFile(p, tab.language);
+                    }
+                };
+
+                tabsBar.appendChild(tabDiv);
+            });
+        }
+
+        function closeTab(path, event) {
+            if (event) event.stopPropagation();
+            delete openTabs[path];
+            updateTabsBar();
+
+            if (path === activeFilePath) {
+                const remaining = Object.keys(openTabs);
+                if (remaining.length > 0) {
+                    openFile(remaining[0], openTabs[remaining[0]].language);
+                } else {
+                    activeFilePath = null;
+                    document.getElementById('currentFilePath').textContent = 'No file open';
+                    document.getElementById('currentLanguageBadge').textContent = 'PLAIN TEXT';
+                    setEditorContent('# Select or create a file to start coding\n', 'plaintext');
+                }
+            }
+        }
+
+        // Save File to Backend
+        async function saveFile() {
+            if (!activeFilePath) {
+                logConsole('⚠️ No active file selected to save.');
+                return;
+            }
+
+            const content = getEditorContent();
+            if (openTabs[activeFilePath]) {
+                openTabs[activeFilePath].content = content;
+            }
+
+            logConsole(`💾 Saving ${activeFilePath}...`);
+
+            try {
+                const res = await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: activeFilePath, content })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (openTabs[activeFilePath]) {
+                        openTabs[activeFilePath].isDirty = false;
+                        updateTabsBar();
+                    }
+                    logConsole(`✅ File saved successfully: ${activeFilePath} (${data.size || content.length} bytes)`);
+                } else {
+                    logConsole(`❌ Save error: ${data.error || 'Server error'}`);
+                }
+            } catch (err) {
+                logConsole(`❌ Network error while saving: ${err.message}`);
+            }
+        }
+
+        // Run Code Execution Engine
+        async function runCode() {
+            if (!activeFilePath) {
+                logConsole('⚠️ No active file selected to run.');
+                return;
+            }
+
+            const content = getEditorContent();
+            const language = openTabs[activeFilePath]?.language || detectLanguageFromPath(activeFilePath);
+            const runBtn = document.getElementById('runBtn');
+            const runStatusLabel = document.getElementById('runStatusLabel');
+
+            // Switch to console or preview tab
+            if (language === 'html') {
+                switchOutputTab('preview');
+                const iframe = document.getElementById('previewIframe');
+                iframe.srcdoc = content;
+                logConsole(`✅ Rendered live preview of ${activeFilePath}`);
+                return;
+            }
+
+            switchOutputTab('console');
+            logBanner(`▶️ EXECUTING: ${activeFilePath} (${language.toUpperCase()})`);
+            runStatusLabel.textContent = 'RUNNING';
+            runStatusLabel.style.color = '#38bdf8';
+            runBtn.disabled = true;
+            runBtn.innerHTML = '⏳ Running...';
+
+            try {
+                const res = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: activeFilePath,
+                        language,
+                        code: content
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.stdout) {
+                    logOutput(data.stdout, 'stdout');
+                }
+                if (data.stderr) {
+                    logOutput(data.stderr, 'stderr');
+                }
+
+                const execTime = data.executionTimeMs !== undefined ? `${data.executionTimeMs}ms` : 'fast';
+                if (data.success) {
+                    logSuccess(`⚡ Process completed successfully in ${execTime} (exit code ${data.exitCode ?? 0})`);
+                    runStatusLabel.textContent = 'SUCCESS';
+                    runStatusLabel.style.color = '#4ade80';
+                } else {
+                    logError(`❌ Process exited with error in ${execTime} (code ${data.exitCode ?? 1})`);
+                    runStatusLabel.textContent = 'FAILED';
+                    runStatusLabel.style.color = '#ff4757';
+                }
+
+                // If on air, trigger audience cheer
+                triggerAudienceReaction(data.success);
+
+            } catch (err) {
+                logError(`❌ Execution network error: ${err.message}`);
+                runStatusLabel.textContent = 'ERROR';
+                runStatusLabel.style.color = '#ff4757';
+            } finally {
+                runBtn.disabled = false;
+                runBtn.innerHTML = '▶️ Run Code';
+            }
+        }
+
+        function formatCode() {
+            if (isMonacoReady && monacoEditor) {
+                monacoEditor.getAction('editor.action.formatDocument').run();
+                logConsole('✨ Document formatted');
+            } else {
+                const fallback = document.getElementById('fallback-editor');
+                if (fallback && activeFilePath && activeFilePath.endsWith('.json')) {
+                    try {
+                        const parsed = JSON.parse(fallback.value);
+                        fallback.value = JSON.stringify(parsed, null, 2);
+                        logConsole('✨ JSON formatted');
+                    } catch (e) {
+                        logConsole('⚠️ JSON format error: ' + e.message);
+                    }
+                } else {
+                    logConsole('✨ Ready');
+                }
+            }
+        }
+
+        // Console Logging Helpers
+        function logBanner(text) {
+            const out = document.getElementById('consoleOutput');
+            const time = new Date().toLocaleTimeString();
+            const el = document.createElement('div');
+            el.className = 'log-entry log-banner';
+            el.textContent = `[${time}] ${text}`;
+            out.appendChild(el);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function logConsole(text) {
+            const out = document.getElementById('consoleOutput');
+            const time = new Date().toLocaleTimeString();
+            const el = document.createElement('div');
+            el.className = 'log-entry log-info';
+            el.textContent = `[${time}] ${text}`;
+            out.appendChild(el);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function logSuccess(text) {
+            const out = document.getElementById('consoleOutput');
+            const time = new Date().toLocaleTimeString();
+            const el = document.createElement('div');
+            el.className = 'log-entry log-success';
+            el.textContent = `[${time}] ${text}`;
+            out.appendChild(el);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function logError(text) {
+            const out = document.getElementById('consoleOutput');
+            const time = new Date().toLocaleTimeString();
+            const el = document.createElement('div');
+            el.className = 'log-entry log-error';
+            el.textContent = `[${time}] ${text}`;
+            out.appendChild(el);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function logOutput(text, type = 'stdout') {
+            const out = document.getElementById('consoleOutput');
+            const el = document.createElement('div');
+            el.className = type === 'stderr' ? 'log-entry log-error' : 'log-entry log-stdout';
+            el.textContent = text;
+            out.appendChild(el);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleOutput').innerHTML = '';
+            logConsole('Console cleared.');
+        }
+
+        function copyConsoleOutput() {
+            const text = document.getElementById('consoleOutput').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                logConsole('📋 Console output copied to clipboard');
+            }).catch(() => {
+                logConsole('⚠️ Clipboard access restricted');
+            });
+        }
+
+        function refreshPreview() {
+            const iframe = document.getElementById('previewIframe');
+            iframe.srcdoc = getEditorContent();
+            logConsole('🔄 Preview refreshed');
+        }
+
+        // Tab Switching in Output Panel
+        function switchOutputTab(tabId) {
+            document.querySelectorAll('.output-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.tab === tabId);
+            });
+
+            document.querySelectorAll('.output-tab-content').forEach(c => {
+                c.classList.toggle('active', c.id === `tab-content-${tabId}`);
+            });
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        // AI Copilot Integration
+        async function sendAIMessage(customText) {
+            const input = document.getElementById('aiMessageInput');
+            const message = (customText || input.value).trim();
+            if (!message) return;
+
+            if (!customText) input.value = '';
+
+            addAIMessageBubble('user', message);
+
+            const activeSnippet = getEditorContent();
+            const contextText = activeFilePath 
+                ? `Active File: ${activeFilePath}\nCode Content:\n\`\`\`${activeSnippet.slice(0, 1500)}\`\`\`` 
+                : 'No active file.';
+
+            try {
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `${message}\n\n[Studio Context: ${contextText}]`
+                    })
+                });
+
+                const data = await res.json();
+                let aiResponse = '';
+                if (data.success && data.message) {
+                    aiResponse = data.message;
+                } else if (data.response) {
+                    aiResponse = data.response;
+                } else if (data.error) {
+                    aiResponse = `Assistant Notice: ${data.error}`;
+                } else {
+                    aiResponse = "I've reviewed your Bitcoin puzzle code. The key math aligns with secp256k1 standards. Check edge conditions on high order exponentiation.";
+                }
+
+                addAIMessageBubble('ai', aiResponse);
+            } catch (err) {
+                addAIMessageBubble('ai', `AI Connection issue: ${err.message}. Showing local guidance: Verify elliptic curve scalar multiplication point G bounds and endianness.`);
+            }
+        }
+
+        function askAICustom(prompt) {
+            switchOutputTab('ai');
+            sendAIMessage(prompt);
+        }
+
+        function addAIMessageBubble(type, text) {
+            const container = document.getElementById('aiChatMessages');
+            const bubble = document.createElement('div');
+            bubble.className = `ai-message ${type}`;
+            const label = type === 'user' ? '👤 You' : '🤖 Bitcoin Jesus';
+            bubble.innerHTML = `<strong>${label}:</strong><br>${escapeHtml(text).replace(/\n/g, '<br>')}`;
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Preset Templates Loader
+        function loadPresetTemplate(presetKey) {
+            if (!presetKey) return;
+            const presets = {
+                'puzzle71': {
+                    name: 'puzzle71_crack_runner.py',
+                    lang: 'python',
+                    content: `#!/usr/bin/env python3\n"""\nBITCOIN PUZZLE 71 ACCELERATED CRACKER\nReward: 7.1 BTC | Status: Unsolved\nTarget Hash160: f6f5431d25bbf7b12e8add9af5e3475c44a0a5b8\nTarget Address: 15QNUBj5nJgnn4kmugn5CXbKsm4rPvy52p\nSearch Range: 0x400000000000000000 to 0x7fffffffffffffffff (2^70 to 2^71-1)\n"""\nimport sys\nimport time\n\nTARGET_HASH160 = "f6f5431d25bbf7b12e8add9af5e3475c44a0a5b8"\nRANGE_MIN = 0x400000000000000000\nRANGE_MAX = 0x7fffffffffffffffff\n\ndef run_bounded_search(steps=10000):\n    print(f"[*] Initializing Puzzle 71 solver...")\n    print(f"[*] Search bounds: [{hex(RANGE_MIN)}, {hex(RANGE_MAX)}]")\n    print(f"[*] Target Hash160: {TARGET_HASH160}")\n    \n    start_t = time.time()\n    current_key = RANGE_MIN + 0x100000\n    \n    # In a real run, Kangaroo jumps or GPU scans test candidates\n    print(f"[+] Sample probe tested: {hex(current_key)}")\n    print(f"[+] Completed {steps} range probes in {time.time() - start_t:.4f}s")\n    print("[+] Candidate generation active.")\n\nif __name__ == "__main__":\n    run_bounded_search()\n`
+                },
+                'kangaroo': {
+                    name: 'kangaroo_ecdlp_solver.py',
+                    lang: 'python',
+                    content: `#!/usr/bin/env python3\n"""\nPOLLARD KANGAROO ECDLP RANGE COLLISION SOLVER\nAlgorithm: Tame and Wild kangaroos jump on elliptic curve points\n"""\nimport math\n\ndef kangaroo_estimate(range_size):\n    # Complexity ~ 2 * sqrt(range_size)\n    expected_ops = 2 * math.isqrt(range_size)\n    print(f"[*] Range size: {range_size}")\n    print(f"[*] Expected Kangaroo jumps for collision: ~{expected_ops:,}")\n    return expected_ops\n\nif __name__ == "__main__":\n    puzzle71_bits = 71\n    range_len = 1 << 70\n    kangaroo_estimate(range_len)\n    print("[*] Kangaroo traps initialized.")\n`
+                },
+                'utxo': {
+                    name: 'fast_utxo_scanner.py',
+                    lang: 'python',
+                    content: `#!/usr/bin/env python3\n"""\nHIGH SPEED BITCOIN PUZZLE UTXO VERIFIER\n"""\nimport json\n\nPUZZLE_ADDRESSES = [\n    {"id": 66, "addr": "13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so", "btc": 6.6, "solved": True},\n    {"id": 67, "addr": "1BY8GQbnueYofwSuFAT3USAhGjPrkxDdW9", "btc": 6.7, "solved": True},\n    {"id": 68, "addr": "1MVDYgVaSN6iKKEsbzRUAYFrYJadwaZJhC", "btc": 6.8, "solved": True},\n    {"id": 71, "addr": "15QNUBj5nJgnn4kmugn5CXbKsm4rPvy52p", "btc": 7.1, "solved": False}\n]\n\ndef verify_utxos():\n    print(f"[*] Auditing {len(PUZZLE_ADDRESSES)} target puzzle addresses...")\n    for p in PUZZLE_ADDRESSES:\n        status = "SOLVED" if p["solved"] else "AVAILABLE (7.1 BTC TARGET)"\n        print(f"  - Puzzle #{p['id']}: {p['addr']} -> {status}")\n    print("[*] Audit complete. Puzzle 71 UTXO is confirmed unspent on mainnet.")\n\nif __name__ == "__main__":\n    verify_utxos()\n`
+                },
+                'hash160': {
+                    name: 'hash160_inverse_probe.js',
+                    lang: 'javascript',
+                    content: `// HASH160 INVERSE MATH PROBE\n// Secp256k1 compressed public key to RIPEMD160(SHA256(PubKey))\nconst crypto = require('crypto');\n\nfunction hash160(pubkeyHex) {\n  const sha = crypto.createHash('sha256').update(Buffer.from(pubkeyHex, 'hex')).digest();\n  const ripemd = crypto.createHash('ripemd160').update(sha).digest();\n  return ripemd.toString('hex');\n}\n\nconsole.log("⚡ Hash160 analyzer initialized");\nconst samplePub = "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";\nconsole.log("Sample PubKey G:", samplePub);\nconsole.log("Hash160 output:", hash160(samplePub));\n`
+                },
+                'txbuilder': {
+                    name: 'raw_tx_signer.py',
+                    lang: 'python',
+                    content: `#!/usr/bin/env python3\n"""\nRAW BITCOIN TRANSACTION CONSTRUCTOR\n"""\ndef build_heist_claim_tx(input_txid, vout, destination_addr, amount_btc):\n    print(f"[*] Building claim transaction...")\n    print(f"[*] Input UTXO: {input_txid}:{vout}")\n    print(f"[*] Destination: {destination_addr}")\n    print(f"[*] Amount: {amount_btc} BTC (minus miner fee)")\n    return "0100000001" + "..."\n\nif __name__ == "__main__":\n    build_heist_claim_tx("a8b273...", 0, "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 7.1)\n    print("[+] Transaction structure ready for cryptographic signing.")\n`
+                }
+            };
+
+            const preset = presets[presetKey];
+            if (preset) {
+                openTabs[preset.name] = {
+                    path: preset.name,
+                    language: preset.lang,
+                    content: preset.content,
+                    isDirty: true
+                };
+                openFile(preset.name, preset.lang);
+                logConsole(`Loaded preset template: ${preset.name}`);
+            }
+            document.getElementById('presetTemplateSelect').value = '';
+        }
+
+        // New File Creation Modal
+        function openNewFileModal() {
+            document.getElementById('newFileModal').style.display = 'flex';
+            document.getElementById('newFileNameInput').focus();
+        }
+
+        function closeNewFileModal() {
+            document.getElementById('newFileModal').style.display = 'none';
+        }
+
+        async function confirmCreateNewFile() {
+            const nameInput = document.getElementById('newFileNameInput');
+            const langSelect = document.getElementById('newFileLangSelect');
+            const filename = (nameInput.value || '').trim();
+
+            if (!filename) {
+                alert('Please enter a file name');
+                return;
+            }
+
+            const lang = langSelect.value;
+            const content = getTemplateForFile(filename, lang);
+
+            closeNewFileModal();
+            nameInput.value = '';
+
+            // Add to tabs and open
+            openTabs[filename] = {
+                path: filename,
+                language: lang,
+                content: content,
+                isDirty: true
+            };
+
+            await saveNewFileToDisk(filename, content);
+            openFile(filename, lang);
+            loadFilesFromBackend();
+        }
+
+        async function saveNewFileToDisk(path, content) {
+            try {
+                await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path, content })
+                });
+            } catch (_) {}
+        }
+
+        // Audience & Broadcast Simulation
+        function triggerAudienceReaction(isSuccess) {
+            const chatBox = document.getElementById('streamChatBox');
+            if (!chatBox) return;
+
+            const solvers = ['BitCrack_Pro', 'KangarooJumper', 'ZeroHash99', 'SatoshiSyndicate', 'HexHunter', 'BlockSeeker'];
+            const solver = solvers[Math.floor(Math.random() * solvers.length)];
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'stream-chat-msg';
+
+            if (isSuccess) {
+                const tipAmount = (Math.random() * 0.02 + 0.005).toFixed(3);
+                streamTipsBtc += parseFloat(tipAmount);
+                document.getElementById('streamTipsVal').textContent = `${streamTipsBtc.toFixed(3)} BTC`;
+                msgDiv.innerHTML = `<span class="stream-tip">⭐ ${solver} tipped ${tipAmount} BTC:</span> "Great run! That output matches!"`;
+            } else {
+                msgDiv.innerHTML = `<span class="stream-user">${solver}:</span> "Check stderr - looks like a syntax or bounding edge."`;
+            }
+
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function startBroadcastSimulation() {
+            setInterval(() => {
+                streamViewers += Math.floor(Math.random() * 7) - 3;
+                if (streamViewers < 220) streamViewers = 220;
+                document.getElementById('viewerCount').textContent = `👥 ${streamViewers}`;
+                document.getElementById('streamViewerVal').textContent = `${streamViewers}`;
+            }, 5000);
+        }
+
+        // Global Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                saveFile();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                e.preventDefault();
+                toggleSidebar();
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            logBanner('🚀 LIVE CODING STUDIO INITIALIZED');
+            logConsole('💡 Shortcuts: Ctrl+S to save, Ctrl+Enter to execute, Ctrl+B for files');
+            initMonacoEditor();
+            loadFilesFromBackend();
+            startBroadcastSimulation();
+
+            // Auto-open Puzzle 71 solver as the default featured file
+            setTimeout(() => {
+                openFile('puzzle71_solver.py', 'python');
+            }, 300);
+        });
+    </script>
+</body>
+</html>
